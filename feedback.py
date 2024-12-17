@@ -18,8 +18,11 @@ else:
 # Function to Transcribe Audio using OpenAI Whisper
 def transcribe_audio(file_path):
     with open(file_path, "rb") as audio:
-        transcript = openai.Audio.transcribe("whisper-1", audio)
-    return transcript['text']
+        response = openai.audio.transcriptions.create(
+            model="whisper-1",
+            file=audio
+        )
+    return response.text
 
 # Function to Analyze Text and Provide Feedback
 def analyze_text(interview_text):

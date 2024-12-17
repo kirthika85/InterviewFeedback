@@ -39,7 +39,7 @@ def analyze_text(interview_text):
     Interview Text:
     {interview_text}
     """
-    response = openai.ChatCompletion.create(
+    response = openai.chat.completions.create(
         model="gpt-4",
         messages=[
             {"role": "system", "content": "You are an expert at analyzing interviews and providing thoughtful feedback."},
@@ -47,7 +47,7 @@ def analyze_text(interview_text):
         ],
         max_tokens=1000
     )
-    return response['choices'][0]['message']['content']
+    return response.choices[0].message.content
 
 # Upload Audio File
 st.subheader("Upload an Interview Audio File")

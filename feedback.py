@@ -49,6 +49,18 @@ def analyze_text(interview_text):
     )
     return response.choices[0].message.content
 
+# Function to check if the text seems to be an interview
+def is_interview(text):
+    # Define keywords that are common in interviews
+    interview_keywords = ["interview", "job", "role", "position", "hiring", "candidate", "interviewed"]
+    text_lower = text.lower()
+
+    # Check if any of the keywords are found in the transcribed text
+    for keyword in interview_keywords:
+        if keyword in text_lower:
+            return True
+    return False
+
 # Upload Audio File
 st.subheader("Upload an Interview Audio File")
 uploaded_audio = st.file_uploader("Upload your audio file (mp3, wav, etc.)", type=["mp3", "wav", "ogg"])
@@ -66,18 +78,23 @@ if uploaded_audio and openai_api_key:
         transcribed_text = transcribe_audio(audio_file_path)
         st.success("Transcription completed!")
 
-        # Display Transcribed Text
-        st.subheader("Transcribed Interview Text")
-        st.text_area("Transcription", transcribed_text, height=200)
+        # Check if the transcription is about an interview
+        if is_interview(transcribed_text):
+            # Display Transcribed Text
+            st.subheader("Transcribed Interview Text")
+            st.text_area("Transcription", transcribed_text, height=200)
 
-        # Analyze Transcription and Provide Feedback
-        st.info("Generating feedback based on the interview text...")
-        feedback = analyze_text(transcribed_text)
-        st.success("Feedback generated!")
+            # Analyze Transcription and Provide Feedback
+            st.info("Generating feedback based on the interview text...")
+            feedback = analyze_text(transcribed_text)
+            st.success("Feedback generated!")
 
-        # Display Feedback
-        st.subheader("Interview Feedback")
-        st.write(feedback)
+            # Display Feedback
+            st.subheader("Interview Feedback")
+            st.write(feedback)
+
+        else:
+            st.warning("The uploaded audio doesn't seem to be an interview. Please upload a relevant interview file.")
 
         # Cleanup audio file
         os.remove(audio_file_path)

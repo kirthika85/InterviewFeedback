@@ -3,7 +3,7 @@ import openai
 import os
 
 # Streamlit App Title
-st.title("Interview Feedback Chatbot")
+st.title("Interview Feedback Generator")
 
 # Sidebar for OpenAI API Key Input
 st.sidebar.header("Settings")
@@ -22,35 +22,35 @@ def transcribe_audio(file_path):
     return transcript['text']
 
 # Function to Analyze Text and Provide Feedback
-def analyze_text(user_input):
+def analyze_text(interview_text):
     prompt = f"""
-    You are an expert interviewer and conversation analyst. Provide conversational feedback on the following:
+    You are an expert interviewer and conversation analyst. Provide insightful feedback based on the interview text. Cover the following:
     - Did the person communicate clearly?
     - Does the job sound like a good “fit” for them?
-    - Did they hit their goals for the interview? If not, what was missed?
+    - Did they hit all their goals for the interview? If not, what did they miss?
     - What question surprised them?
-    - One thing they could have done differently to improve.
+    - What’s one thing they could have done differently to improve their interview?
     - Were their questions thoughtful and well-received?
-    - Did anything feel off or strange (like a "spider sense" moment)?
+    - Did anything feel slightly off, like a "spider sense" moment, where something didn't seem right?
 
-    Here's the text for analysis:
-    {user_input}
+    Interview Text:
+    {interview_text}
     """
     response = openai.ChatCompletion.create(
         model="gpt-4",
         messages=[
-            {"role": "system", "content": "You are a helpful and thoughtful interview feedback chatbot."},
+            {"role": "system", "content": "You are an expert at analyzing interviews and providing thoughtful feedback."},
             {"role": "user", "content": prompt}
         ],
         max_tokens=1000
     )
     return response['choices'][0]['message']['content']
 
-# Upload Audio for Transcription (Optional)
-st.subheader("Upload an Interview Audio File (Optional)")
+# Upload Audio File
+st.subheader("Upload an Interview Audio File")
 uploaded_audio = st.file_uploader("Upload your audio file (mp3, wav, etc.)", type=["mp3", "wav", "ogg"])
 
-# Audio Transcription Section
+# Main Logic for Transcription and Feedback
 if uploaded_audio and openai_api_key:
     try:
         # Save uploaded audio to disk
@@ -62,44 +62,28 @@ if uploaded_audio and openai_api_key:
         st.info("Transcribing audio...")
         transcribed_text = transcribe_audio(audio_file_path)
         st.success("Transcription completed!")
-        st.text_area("Transcribed Interview Text", transcribed_text, height=200)
+
+        # Display Transcribed Text
+        st.subheader("Transcribed Interview Text")
+        st.text_area("Transcription", transcribed_text, height=200)
+
+        # Analyze Transcription and Provide Feedback
+        st.info("Generating feedback based on the interview text...")
+        feedback = analyze_text(transcribed_text)
+        st.success("Feedback generated!")
+
+        # Display Feedback
+        st.subheader("Interview Feedback")
+        st.write(feedback)
 
         # Cleanup audio file
         os.remove(audio_file_path)
 
     except Exception as e:
-        st.error(f"An error occurred while transcribing audio: {e}")
+        st.error(f"An error occurred: {e}")
 
-# Chatbot Section
-st.subheader("Chat with the Interview Feedback Bot")
+elif not openai_api_key:
+    st.warning("Please enter your OpenAI API key in the sidebar to proceed.")
 
-# Initialize chat history
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-# Display chat history
-for message in st.session_state.messages:
-    if message["role"] == "user":
-        st.text_input("You", value=message["content"], key=message["content"], disabled=True)
-    else:
-        st.text_area("Bot", value=message["content"], key=message["content"], height=150, disabled=True)
-
-# User input field
-user_input = st.text_input("Your Message:", key="user_input")
-if user_input and openai_api_key:
-    try:
-        # Add user input to chat history
-        st.session_state.messages.append({"role": "user", "content": user_input})
-
-        # Generate feedback from GPT-4
-        with st.spinner("Thinking..."):
-            bot_response = analyze_text(user_input)
-        
-        # Add bot response to chat history
-        st.session_state.messages.append({"role": "assistant", "content": bot_response})
-
-        # Display bot response
-        st.text_area("Bot", value=bot_response, height=150, disabled=True)
-
-    except Exception as e:
-        st.error(f"An error occurred while generating feedback: {e}")
+else:
+    st.info("Upload an audio file to get started.")

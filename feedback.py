@@ -52,7 +52,7 @@ def analyze_text(interview_text):
 # Function to check if the text seems to be an interview
 def is_interview(text):
     # Define keywords that are common in interviews
-    interview_keywords = ["interview", "job", "role", "position", "hiring", "candidate", "interviewed","questions"]
+    interview_keywords = ["interview", "job", "role", "position", "hiring", "candidate", "interviewed","question"]
     text_lower = text.lower()
 
     # Check if any of the keywords are found in the transcribed text
